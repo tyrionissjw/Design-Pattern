@@ -1,3 +1,3 @@
 # Design-Pattern
 Note for design pattern (Java implementation)
-Please note: Code is not verify for compile
+Please note: Code is not verified for compile
