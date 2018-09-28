@@ -1,0 +1,33 @@
+1、Future模式可以简单的看成是 Proxy 模式 与 Thread-Per-Message 模式 的结合，在Proxy模式中，用一个Proxy来代替真正的目标（Subject）生成，目标的
+生成可能是费时的，例如在开启一个内嵌图片的文件中，希望程式能尽快完成开启文件的动作，并显示一个可接受的画面给使用者看，在还不需要看到图片的页面
+中先使用Proxy代替真正的图片载入，只有在真正需要看到图片时，才由Subject物件载入真正的图片。
+2、考虑这样一个情况，使用者可能快速翻页浏览文件中，而图片档案很大，如此在浏览到有图片的页数时，就会导致图片的载入，因而造成使用者浏览文件时会
+有停顿的现象，所以我们希望在文件开启之后，仍有一个背景作业持续载入图片，如此使用者在快速浏览页面时，所造成的停顿可以获得改善。
+3、Future模式在请求发生时，会先产生一个Future物件给发出请求的客户，它的作用就像是Proxy物件，而同时间，真正的目标物件之生成，由一个新的执行绪
+持续进行（即Thread-Per-Message），真正的目标物件生成之后，将之设定至Future之中，而当客户端真正需要目标物件时，目标物件也已经准备好，可以让客
+户提取使用。
+Client					Server
+	|---1.request()----->|
+	|							|---1.1 create()--->Future
+	|							|							 |
+	|<---Future---------|---1.2 create()------|-------------------------------Thread
+	|						   |							 |											   |
+							   |							 |											   |-------2.create----->RealSubject
+							   |							 |											   |<---------------------------|
+							   |							 |<---3.getRealObject------------|
+							   |							|----------------------------------->|
+					   4:getSubject()															   |
+一个简单的Java程式片段示范可能像是这样：
+ public Future request() {
+    final Future future = new Future();
+
+    new Thread() {
+        public void run() {
+            // 下面这个动作可能是耗时的
+            RealSubject subject = new RealSubject();
+            future.setRealSubject(subject);
+        }
+    }.start();
+
+    return future;
+ }					   
